@@ -1,0 +1,79 @@
+"use client";
+
+import React, { useState } from 'react';
+import JSZip from 'jszip';
+import { saveAs } from 'file-saver';
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { showSuccess, showError } from "@/utils/toast";
+
+const ZipDownloadButton = () => {
+  const [fileContent, setFileContent] = useState<string>('Questo è il contenuto del file di testo.');
+  const [fileName, setFileName] = useState<string>('my-text-file.txt');
+  const [zipFileName, setZipFileName] = useState<string>('my-archive.zip');
+
+  const handleDownloadZip = async () => {
+    if (!fileContent || !fileName) {
+      showError("Per favore, inserisci il contenuto del file e il nome del file.");
+      return;
+    }
+
+    const zip = new JSZip();
+    zip.file(fileName, fileContent);
+
+    try {
+      const content = await zip.generateAsync({ type: "blob" });
+      saveAs(content, zipFileName);
+      showSuccess("File ZIP scaricato con successo!");
+    } catch (error) {
+      console.error("Errore durante la creazione o il download del file ZIP:", error);
+      showError("Errore durante il download del file ZIP.");
+    }
+  };
+
+  return (
+    <div className="p-6 border rounded-lg shadow-md bg-card text-card-foreground max-w-md mx-auto">
+      <h2 className="text-2xl font-semibold mb-4 text-center">Crea e Scarica ZIP</h2>
+      
+      <div className="grid w-full items-center gap-1.5 mb-4">
+        <Label htmlFor="fileContent">Contenuto del file:</Label>
+        <Input
+          id="fileContent"
+          type="text"
+          value={fileContent}
+          onChange={(e) => setFileContent(e.target.value)}
+          placeholder="Inserisci il contenuto del file"
+        />
+      </div>
+
+      <div className="grid w-full items-center gap-1.5 mb-4">
+        <Label htmlFor="fileName">Nome del file all'interno dello ZIP:</Label>
+        <Input
+          id="fileName"
+          type="text"
+          value={fileName}
+          onChange={(e) => setFileName(e.target.value)}
+          placeholder="e.g., document.txt"
+        />
+      </div>
+
+      <div className="grid w-full items-center gap-1.5 mb-6">
+        <Label htmlFor="zipFileName">Nome del file ZIP:</Label>
+        <Input
+          id="zipFileName"
+          type="text"
+          value={zipFileName}
+          onChange={(e) => setZipFileName(e.target.value)}
+          placeholder="e.g., archive.zip"
+        />
+      </div>
+
+      <Button onClick={handleDownloadZip} className="w-full">
+        Scarica File ZIP
+      </Button>
+    </div>
+  );
+};
+
+export default ZipDownloadButton;
